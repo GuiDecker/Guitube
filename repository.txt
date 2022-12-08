@@ -1,20 +1,88 @@
+pages> index.js
 import React from "react"
+import config from "../config.json"
+import styled from "styled-components"
+import Menu from "../src/components/Menu/Index"
+import { StyledTimeline } from "../src/components/Timeline"
+import { videoService } from "../src/services/videoService"
 
-export const ColorModeContext = React.createContext({
-  mode: "",
-  setMode: () => {
-    alert("Você precisa fazer tananan")
-  },
-})
+function getThumbnail(url) {
+  return `https://img.youtube.com/vi/${url.split("v=")[1]}/hqdefault.jpg`
+}
 
-export default function ColorModeProvider(props) {
-  const [mode, setMode] = React.useState(props.initialMode)
+function HomePage() {
+  const service = videoService()
+  const [valorDoFiltro, setValorDoFiltro] = React.useState("")
+
+  // config playlists
+  const [playlists, setPlaylists] = React.useState({})
+  // const playLists = {
+  //   jogos: [],
+  // }
+
+  React.useEffect(() => {
+    console.log("useEffect")
+    service.getAllVideos().then((dados) => {
+      console.log(dados.data)
+      //forma imutavel
+      const novasPlaylists = { ...playlists }
+      dados.data.forEach((video) => {
+        if (!novasPlaylists[video.playlist]) novasPlaylists[video.playlist] = []
+      })
+      setPlaylists(novasPlaylists)
+    })
+  }, [])
+
+  console.log("playlists Pront", playlists)
+
   return (
-    <ColorModeContext.Provider value={{ mode: mode, setMode }}>
-      {props.children}
-    </ColorModeContext.Provider>
+    <>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          // backgroundColor: "red",
+        }}
+      >
+        <Menu
+          valorDoFiltro={valorDoFiltro}
+          setValorDoFiltro={setValorDoFiltro}
+        />
+        <Header />
+        <TimeLine searchValue={valorDoFiltro} playLists={playLists}>
+          Conteudo
+        </TimeLine>
+      </div>
+    </>
   )
 }
+export default HomePage
+
+const StyledHeader = styled.div`
+  background-color: ${({ theme }) => theme.backgroundLevel1};
+
+  img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+  }
+  .user-info {
+    margin-top: 50px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 16px 32px;
+    gap: 16px;
+  }
+`
+const StyledBanner = styled.div`
+  background-color: blue;
+  background-image: url(${({ bg }) => bg});
+  /* background-image: url(${config.bg}); */
+  height: 230px;
+  background-size: cover;
+`
 
 function Header() {
   return (
